@@ -17,8 +17,8 @@ app.get('/', (req, res) => {
 
 app.post('/api/gemini', async (req, res) => {
     try {
-        const { promt, model_Gemini } = req.body;
-        const MODEL = model_Gemini || "gemini-2.0-flash";
+        const { prompt, model } = req.body;
+        const MODEL = model || "gemini-2.0-flash";
         const API_KEY = process.env.GEMINI_API_KEY;
 
         const response = await fetch(
@@ -29,15 +29,45 @@ app.post('/api/gemini', async (req, res) => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: promt }] }],
-                }),
+                    contents: [{ parts: [{ text: prompt }] }]
+                })
             });
 
         const data = await response.json();
         res.json(data);
     }
     catch (error) {
-        res.status(500).json({ error: 'Error al procesar la solicitud' });
+        console.error('Error en /api/gemini:', error);
+        res.status(500).json({ error: 'Error al procesar la solicitud', details: error.message });
+    }
+});
+
+app.post('/api/chatgpt', async (req, res) => {
+    try {
+        const { prompt, model } = req.body;
+        const OPENAI_API_KEY = process.env.CHATGPT_API_KEY; 
+        const MODEL = model || 'gpt-3.5-turbo'; //  'gpt-4', 'gpt-3.5-turbo'
+
+        const response = await fetch('https://api.openai.com/v1/chat/completions', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${OPENAI_API_KEY}`
+            },
+            body: JSON.stringify({
+                model: MODEL,
+                messages: [
+                    { role: 'user', content: prompt }
+                ],
+                temperature: 0.7
+            })
+        });
+
+        const data = await response.json();
+        res.json(data);
+    } catch (error) {
+        console.error('Error:', error);
+        res.status(500).json({ error: 'Error al generar contenido' });
     }
 });
 
