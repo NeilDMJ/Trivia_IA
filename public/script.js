@@ -1,5 +1,6 @@
 //const MODEL = "gemini-2.5-flash"; // o "gemini-1.5-pro"
 //const MODEL = "gemini-2.5-flash";
+
 //const MODEL = "gemini-2.5-flash-lite";
 const model_Gemini = "gemini-2.0-flash";
 const model_ChatGPT = "gpt-3.5-turbo";
@@ -40,7 +41,7 @@ const temasGrupos = {
     "Algoritmo de Dijkstra",
     "Algoritmo A*"
   ],
-  
+
   "Bajo el Capó: Arquitectura y Hardware": [
     "Diseño digital",
     "Sistemas numéricos (Binario, Hexadecimal)",
@@ -67,7 +68,7 @@ const temasGrupos = {
     "Buses de comunicación (I2C, SPI, UART)",
     "RTOS (Sistemas operativos de tiempo real)"
   ],
-  
+
   "Conectando al Mundo: Redes y Web": [
     "Fundamentos de redes",
     "Modelo OSI (7 capas)",
@@ -100,7 +101,7 @@ const temasGrupos = {
     "Node.js y Express",
     "Python (Django, FastAPI)"
   ],
-  
+
   "Constructores de Software: Sistemas y Datos": [
     "Sistemas operativos",
     "Kernel",
@@ -135,7 +136,7 @@ const temasGrupos = {
     "Análisis Léxico y Sintáctico",
     "Árbol de Sintaxis Abstracta (AST)"
   ],
-  
+
   "El Futuro es Hoy: IA y Cómputo Avanzado": [
     "Inteligencia artificial",
     "Prueba de Turing",
@@ -222,33 +223,31 @@ async function obtenerContenido(configuracion) {
             }
               ;
 `;
-
-  // Ejecutar la llamada a la API de ChatGPT o Gemini según sea el caso
   let response;
-  
+
   if (configuracion.modelo === 'gpt-3.5-turbo') {
     response = await fetch('/api/chatgpt', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         prompt: prompt,
-        model: Modelo 
+        model: Modelo
       })
     });
   } else if (configuracion.modelo === 'gemini-2.0-flash') {
     response = await fetch('/api/gemini', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ 
+      body: JSON.stringify({
         prompt: prompt,
-        model: configuracion.modelo 
+        model: configuracion.modelo
       })
     });
   }
 
   const data = await response.json();
   console.log("Respuesta cruda:", data);
-  
+
   return data;
 }
 
@@ -260,30 +259,30 @@ async function obtenerContenido(configuracion) {
 const modeloItems = document.querySelectorAll('#dropdownMenuButton1 + .dropdown-menu .dropdown-item');
 
 modeloItems.forEach(item => {
-    item.addEventListener('click', function(e) {
-        e.preventDefault(); // Evitar que el link navegue
-        
-        const textoSeleccionado = this.textContent; // "Gemini" o "ChatGPT"
-        configuracion.modelo = textoSeleccionado;
-        // Cambiar el texto del botón
-        document.getElementById('dropdownMenuButton1').textContent = textoSeleccionado;
-        
-        // Guardar la selección en una variable
-        let modeloSeleccionado;
-        if (textoSeleccionado === 'Gemini') {
-            modeloSeleccionado = 'gemini-2.0-flash';
-        } else if (textoSeleccionado === 'ChatGPT') {
-            modeloSeleccionado = 'gpt-3.5-turbo';
-        }
+  item.addEventListener('click', function (e) {
+    e.preventDefault(); // Evitar que el link navegue
 
-        console.log(modeloSeleccionado);
-    });
+    const textoSeleccionado = this.textContent; // "Gemini" o "ChatGPT"
+    configuracion.modelo = textoSeleccionado;
+    // Cambiar el texto del botón
+    document.getElementById('dropdownMenuButton1').textContent = textoSeleccionado;
+
+    // Guardar la selección en una variable
+    let modeloSeleccionado;
+    if (textoSeleccionado === 'Gemini') {
+      modeloSeleccionado = 'gemini-2.0-flash';
+    } else if (textoSeleccionado === 'ChatGPT') {
+      modeloSeleccionado = 'gpt-3.5-turbo';
+    }
+
+    console.log(modeloSeleccionado);
+  });
 });
 
 const temaItems = document.querySelectorAll('#dropdownMenuButton2 + .dropdown-menu .dropdown-item');
 
-temaItems.forEach(item=>{
-  item.addEventListener('click', function(e){
+temaItems.forEach(item => {
+  item.addEventListener('click', function (e) {
     e.preventDefault();
     const temaSeleccionado = this.textContent;
     configuracion.tema = temaSeleccionado;
@@ -292,30 +291,70 @@ temaItems.forEach(item=>{
   })
 })
 
-const dificultadItems = document.querySelectorAll('#dropdownMenuButton3 + .dropdown-menu .dropdown-item')
+const dificultadItems = document.querySelectorAll('#dropdownMenuButton3 + .dropdown-menu .dropdown-item');
 
-dificultadItems.forEach(item =>{
-  item.addEventListener('click',function(e){
+dificultadItems.forEach(item => {
+  item.addEventListener('click', function (e) {
     e.preventDefault();
-    const dificultadSeleccionada = this.textContent
+    const dificultadSeleccionada = this.textContent;
     configuracion.dificultad = dificultadSeleccionada;
     document.getElementById('dropdownMenuButton3').textContent = dificultadSeleccionada;
     console.log(dificultadSeleccionada);
   })
 });
 
-// const recargar = document.getElementById('cargar');
-// recargar.addEventListener('click', () => {
-//   obtenerContenido(configuracion);
-// });
+function tratarTexto(texto) {
+  let textoLimpio = texto.trim();
 
-// // Event listener para el botón "Siguiente Pregunta"
-// const nextButton = document.getElementById('next-button');
-// nextButton.addEventListener('click', () => {
-//   // Generar nuevo tema aleatorio del grupo seleccionado
-//   configuracion.tema = obtenerTemaAleatorio(configuracion.grupoTema);
-//   console.log('Nuevo tema:', configuracion.tema);
-  
-//   // Cargar nueva pregunta
-//   obtenerContenido(configuracion);
-// });
+  textoLimpio = textoLimpio.trim();
+  const primeraLlave = textoLimpio.indexOf('{');
+  const ultimaLlave = textoLimpio.lastIndexOf('}');
+  const objetoString = textoLimpio.substring(primeraLlave, ultimaLlave + 1);
+  const objeto = JSON.parse(objetoString);
+
+  return objeto;
+}
+
+const siguiente = document.getElementById('siguiente');
+
+siguiente.addEventListener('click', async function () {
+  const data = await obtenerContenido(configuracion);
+
+  let textoRespuesta;
+  if (configuracion.modelo === 'gemini-2.0-flash') {
+    textoRespuesta = data.candidates[0].content.parts[0].text;
+  } else if (configuracion.modelo === 'gpt-3.5-turbo') {
+    textoRespuesta = data.choices[0].message.content;
+  }
+  const textoTratado = tratarTexto(textoRespuesta);
+  console.log('Texto final:', textoTratado);
+  mostrarPregunta(textoTratado);
+  mostrarRespuestas(textoTratado);
+});
+
+function mostrarPregunta(textoTratado) {
+  let preguntaTexto = document.getElementById('question-text');
+  preguntaTexto.innerHTML = textoTratado.question;
+}
+
+function mostrarRespuestas(textoTratado) {
+  const respuestas = document.getElementById('respuestas');
+  respuestas.innerHTML = ''; 
+  textoTratado.options.forEach((element, index) => {
+    let respuesta = document.createElement('div');
+    respuesta.id = `option-${index}`; // Asignar un ID único
+    respuesta.innerHTML = `${element}`;
+    respuesta.classList.add('option-button');
+    respuestas.appendChild(respuesta);
+  });
+}
+
+function colorearRespuestas(textoTratado) {
+  textoTratado.options.forEach((option) => {
+    if (option.value === textoTratado.correct_answer) {
+       document.getElementById(option.id).classList.add('correct-answer');
+    } else {
+       document.getElementById(option.id).classList.add('correct-answer');
+    }
+  });
+}
