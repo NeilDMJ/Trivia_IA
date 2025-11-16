@@ -5,7 +5,7 @@
 const model_Gemini = "gemini-2.0-flash";
 const model_ChatGPT = "gpt-3.5-turbo";
 
-// Temas organizados por grupos
+
 const temasGrupos = {
   "Maestros del Algoritmo y la Lógica": [
     "Programación estructurada",
@@ -184,14 +184,23 @@ function obtenerTemaAleatorio(nombreGrupo) {
   return temasDelGrupo[indiceAleatorio];
 }
 
-// Configuración por defecto
+// Obtener un grupo aleatorio
+function obtenerGrupoAleatorio() {
+  const nombresGrupos = Object.keys(temasGrupos);
+  const indiceAleatorio = Math.floor(Math.random() * nombresGrupos.length);
+  return nombresGrupos[indiceAleatorio];
+}
+
+// Configuración por defecto con grupo y tema aleatorios
+const grupoInicial = obtenerGrupoAleatorio();
 let configuracion = {
   modelo: 'gemini-2.0-flash',
-  grupoTema: 'Maestros del Algoritmo y la Lógica',
-  tema: obtenerTemaAleatorio('Maestros del Algoritmo y la Lógica'),
+  grupoTema: grupoInicial,
+  tema: obtenerTemaAleatorio(grupoInicial),
   dificultad: 'Medio'
 }
 
+console.log('Grupo inicial:', configuracion.grupoTema);
 console.log('Tema inicial:', configuracion.tema);
 
 async function obtenerContenido(configuracion) {
@@ -252,7 +261,7 @@ async function obtenerContenido(configuracion) {
 }
 
 // Llamada inicial con la configuración completa
-// obtenerContenido(configuracion);
+//obtenerContenido(configuracion);
 
 //obtener botones desplegables para seleccionar el modelo
 // Seleccionar todos los items del dropdown de Modelo de IA
@@ -318,6 +327,13 @@ function tratarTexto(texto) {
 const siguiente = document.getElementById('siguiente');
 
 siguiente.addEventListener('click', async function () {
+  const grupoAleatorio = obtenerGrupoAleatorio();
+  configuracion.grupoTema = grupoAleatorio;
+  configuracion.tema = obtenerTemaAleatorio(grupoAleatorio);
+  
+  console.log('Nuevo grupo:', configuracion.grupoTema);
+  console.log('Nuevo tema:', configuracion.tema);
+  
   const data = await obtenerContenido(configuracion);
 
   let textoRespuesta;
@@ -342,44 +358,59 @@ function mostrarRespuestas(textoTratado) {
   const explicación = document.getElementById('feedback-container');
   explicación.style.display = 'none';
   respuestas.innerHTML = '';
+  
   textoTratado.options.forEach((element, index) => {
     let respuesta = document.createElement('div');
-    respuesta.id = `option-${index}`; // Asignar un ID único
+    respuesta.id = `option-${index}`;
     respuesta.innerHTML = `${element}`;
     respuesta.classList.add('option-button');
     respuestas.appendChild(respuesta);
+    
     respuesta.addEventListener('click', function () {
-      colorearRespuestas(textoTratado);
+      colorearRespuestas(element, textoTratado);
     });
   });
 }
 
-function colorearRespuestas(textoTratado) {
-  //al hacer click en una respuesta se deben colorear todas las respuestas con el color correspondiente
-  const respuestas = document.querySelectorAll('#respuestas .option-button');
-
-  respuestas.forEach((respuesta) => {
+function colorearRespuestas(respuestaSeleccionada, textoTratado) {
+  const todasLasRespuestas = document.querySelectorAll('#respuestas .option-button');
+  
+  const esCorrecta = respuestaSeleccionada === textoTratado.correct_answer;
+  
+  todasLasRespuestas.forEach((respuesta) => {
     const textoRespuesta = respuesta.textContent.trim();
+    
     if (textoRespuesta === textoTratado.correct_answer) {
       respuesta.classList.add('correct');
-    } else {
+    }
+    else if (!esCorrecta && textoRespuesta === respuestaSeleccionada) {
       respuesta.classList.add('incorrect');
     }
-    respuesta.style.pointerEvents = 'none'; // Deshabilitar clics en las respuestas
-    respuesta.classList.add('disabled'); // Deshabilitar todas las respuestas después de una selección
+    
+    respuesta.style.pointerEvents = 'none';
+    respuesta.classList.add('disabled');
   });
 
   const contenedorExplicacion = document.getElementById('feedback-container');
-  const textoExplicacion = document.getElementById('feedback-message');
-
-  textoExplicacion.textContent = `${textoTratado.explanation}`;
-  contenedorExplicacion.style.display = 'block';
-
-  const esCorrecta = respuestaSeleccionada === textoTratado.correct_answer;
+  const textoExplicacion = document.getElementById('explanation-text');
+  
+  const feedbackMessage = document.getElementById('feedback-message');
   if (esCorrecta) {
-    textoExplicacion.textContent = `¡Correcto! ${textoTratado.explanation}`;
+    feedbackMessage.textContent = '¡Correcto!';
+    feedbackMessage.style.color = '#155724';
   } else {
-    textoExplicacion.textContent = `Incorrecto. ${textoTratado.explanation}`;
-  } 
-
+    feedbackMessage.textContent = 'Incorrecto';
+    feedbackMessage.style.color = '#721c24';
+  }
+  
+  textoExplicacion.textContent = textoTratado.explanation;
+  contenedorExplicacion.style.display = 'block';
+  
+  if (esCorrecta) {
+    const correctCount = document.getElementById('correct-count');
+    correctCount.textContent = parseInt(correctCount.textContent) + 1;
+  } else {
+    const incorrectCount = document.getElementById('incorrect-count');
+    incorrectCount.textContent = parseInt(incorrectCount.textContent) + 1;
+  }
 }
