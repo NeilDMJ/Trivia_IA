@@ -339,22 +339,47 @@ function mostrarPregunta(textoTratado) {
 
 function mostrarRespuestas(textoTratado) {
   const respuestas = document.getElementById('respuestas');
-  respuestas.innerHTML = ''; 
+  const explicación = document.getElementById('feedback-container');
+  explicación.style.display = 'none';
+  respuestas.innerHTML = '';
   textoTratado.options.forEach((element, index) => {
     let respuesta = document.createElement('div');
     respuesta.id = `option-${index}`; // Asignar un ID único
     respuesta.innerHTML = `${element}`;
     respuesta.classList.add('option-button');
     respuestas.appendChild(respuesta);
+    respuesta.addEventListener('click', function () {
+      colorearRespuestas(textoTratado);
+    });
   });
 }
 
 function colorearRespuestas(textoTratado) {
-  textoTratado.options.forEach((option) => {
-    if (option.value === textoTratado.correct_answer) {
-       document.getElementById(option.id).classList.add('correct-answer');
+  //al hacer click en una respuesta se deben colorear todas las respuestas con el color correspondiente
+  const respuestas = document.querySelectorAll('#respuestas .option-button');
+
+  respuestas.forEach((respuesta) => {
+    const textoRespuesta = respuesta.textContent.trim();
+    if (textoRespuesta === textoTratado.correct_answer) {
+      respuesta.classList.add('correct');
     } else {
-       document.getElementById(option.id).classList.add('correct-answer');
+      respuesta.classList.add('incorrect');
     }
+    respuesta.style.pointerEvents = 'none'; // Deshabilitar clics en las respuestas
+    respuesta.classList.add('disabled'); // Deshabilitar todas las respuestas después de una selección
   });
+
+  const contenedorExplicacion = document.getElementById('feedback-container');
+  const textoExplicacion = document.getElementById('feedback-message');
+
+  textoExplicacion.textContent = `${textoTratado.explanation}`;
+  contenedorExplicacion.style.display = 'block';
+
+  const esCorrecta = respuestaSeleccionada === textoTratado.correct_answer;
+  if (esCorrecta) {
+    textoExplicacion.textContent = `¡Correcto! ${textoTratado.explanation}`;
+  } else {
+    textoExplicacion.textContent = `Incorrecto. ${textoTratado.explanation}`;
+  } 
+
 }
